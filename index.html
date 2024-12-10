@@ -13,22 +13,21 @@
 <body>
     <div id="app">
         <!-- Encabezado -->
-        <header class="bg-warning text-center py-4 d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="display-4">Tienda Digimon TCG</h1>
-                <p>Encuentra tus cartas favoritas del juego Digimon Card Game</p>
-            </div>
-            <div>
-                <button class="btn btn-outline-dark position-relative" @click="irAlCarrito" style="font-size: 1.5rem; padding: 0.5rem;">
-                    <i class="bi bi-cart"></i>
-                    <span 
-                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                    >
-                        {{ carrito.length }}
-                    </span>
-                </button>
-            </div>            
-        </header>
+        <header class="bg-warning text-center py-4">
+    <div>
+        <h1 class="display-4">Tienda Digimon TCG</h1>
+        <p>Encuentra tus cartas favoritas del juego Digimon Card Game</p>
+    </div>
+    <button class="btn btn-outline-dark position-relative" @click="irAlCarrito">
+        <i class="bi bi-cart"></i>
+        <span 
+            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+        >
+            {{ carrito.length }}
+        </span>
+    </button>
+</header>
+
 
         <!-- Contenido principal -->
         <main class="container my-4">
