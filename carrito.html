@@ -27,7 +27,7 @@
                                 <th>Nombre</th>
                                 <th>Cantidad</th>
                                 <th>Precio Unitario</th>
-                                <th>Subtotal</th>
+                                <th>Importe</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -40,10 +40,10 @@
                                 <td>
                                     <button class="btn btn-outline-secondary btn-sm" @click="actualizarCantidad(index, -1)" :disabled="item.cantidad === 1">-</button>
                                     {{ item.cantidad }}
-                                    <button class="btn btn-outline-secondary btn-sm" @click="actualizarCantidad(index, 1)">+</button>
+                                    <button class="btn btn-outline-secondary btn-sm" @click="actualizarCantidad(index, 1)" :disabled="item.cantidad === 10">+</button>
                                 </td>
                                 <td>${{ item.price || 0 }}</td>
-                                <td>${{ calcularSubtotal(item) }}</td>
+                                <td>${{ (item.price || 0) * item.cantidad }}</td>
                                 <td>
                                     <button class="btn btn-danger btn-sm" @click="eliminarProducto(index)">Eliminar</button>
                                 </td>
@@ -51,8 +51,29 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Subtotales -->
+                <div class="table-responsive mt-4">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Subtotal</th>
+                                <th>IVA (16%)</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${{ subtotal }}</td>
+                                <td>${{ iva }}</td>
+                                <td>${{ total }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Acciones -->
                 <div class="text-end">
-                    <h4>Total: ${{ totalCarrito }}</h4>
                     <button class="btn btn-danger me-2" @click="vaciarCarrito">Vaciar Carrito</button>
                     <button class="btn btn-success">Proceder al Pago</button>
                 </div>
@@ -78,10 +99,18 @@
                 };
             },
             computed: {
-                // Cálculo del total del carrito
-                totalCarrito() {
-                    return this.carrito.reduce((total, item) => total + this.calcularSubtotal(item), 0).toFixed(2);
+                // Cálculo del subtotal
+                subtotal() {
+                    return this.carrito.reduce((total, item) => total + ((item.price || 0) * item.cantidad), 0);
                 },
+                // Cálculo del IVA (16%)
+                iva() {
+                    return this.subtotal * 0.16;
+                },
+                // Cálculo del total
+                total() {
+                    return this.subtotal + this.iva;
+                }
             },
             methods: {
                 // Cargar carrito desde localStorage
@@ -110,16 +139,14 @@
                     const [min, max] = rangos[producto.level] || rangos.default;
                     producto.price = (Math.floor(Math.random() * ((max - min) / 5 + 1)) * 5) + min;
                 },
-                // Calcular subtotal de un producto
-                calcularSubtotal(item) {
-                    return (item.price || 0) * item.cantidad;
-                },
+
                 // Actualizar cantidad de un producto
                 actualizarCantidad(index, cambio) {
                     const producto = this.carrito[index];
                     if (producto) {
                         producto.cantidad += cambio;
                         if (producto.cantidad < 1) producto.cantidad = 1; // Mínimo 1
+                        if (producto.cantidad > 10) producto.cantidad = 10; // Máximo 10
                         this.guardarCarrito();
                     }
                 },
