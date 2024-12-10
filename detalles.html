@@ -13,9 +13,19 @@
     <div id="app">
         <!-- Menú de ruta -->
         <nav aria-label="breadcrumb" class="my-4">
-            <ol class="breadcrumb bg-warning p-3 rounded" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
-                <li class="breadcrumb-item"><a href="index.html" class="text-dark fw-bold" @click="regresarAlCatalogo"><i class="fas fa-home"></i> Menú Principal</a></li>
-                <li class="breadcrumb-item active fw-bold" aria-current="page"><i class="fas fa-book-open"></i> {{ producto.name }}</li>
+            <ol class="breadcrumb bg-warning p-3 rounded d-flex justify-content-between align-items-center" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                <div>
+                    <li class="breadcrumb-item"><a href="index.html" class="text-dark fw-bold"><i class="fas fa-home"></i> Menú Principal</a></li>
+                    <li class="breadcrumb-item active fw-bold" aria-current="page"><i class="fas fa-book-open"></i> {{ producto.name }}</li>
+                </div>
+                <li>
+                    <button class="btn btn-outline-dark position-relative" @click="irAlCarrito">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ carrito.length }}
+                        </span>
+                    </button>
+                </li>
             </ol>
         </nav>
 
@@ -49,7 +59,7 @@
                             <input type="text" class="form-control text-center mx-2" :value="cantidad" readonly style="width: 50px;">
                             <button class="btn btn-outline-secondary" @click="aumentarCantidad" :disabled="cantidad === 6">+</button>
                         </div>
-                        <button class="btn btn-primary btn-lg shadow">Agregar al Carrito <i class="fas fa-shopping-cart"></i></button>
+                        <button class="btn btn-primary btn-lg shadow" @click="agregarAlCarrito">Agregar al Carrito <i class="fas fa-shopping-cart"></i></button>
                     </div>
                 </div>
             </div>
@@ -58,80 +68,55 @@
 
     <!-- Vue.js -->
     <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <!-- App Script -->
     <script>
         const app = Vue.createApp({
             data() {
                 return {
                     producto: {},
-                    cantidad: 1
+                    cantidad: 1,
+                    carrito: []
                 };
             },
             methods: {
                 obtenerProductoDelStorage() {
-                    const productoAlmacenado = localStorage.getItem('selectedProduct');
+                    const productoAlmacenado = localStorage.getItem("selectedProduct");
                     if (productoAlmacenado) {
                         this.producto = JSON.parse(productoAlmacenado);
-                        // Asignar un valor aleatorio de tipo solo si no está asignado
-                        if (!this.producto.type || this.producto.type === 'Desconocido') {
-                            const tipos = ["Agua", "Fuego", "Tierra", "Aire", "Luz", "Oscuridad"];
-                            this.producto.type = tipos[Math.floor(Math.random() * tipos.length)];
-                        }
-                        if (!this.producto.price) {
-                            this.asignarPrecioSegunCategoria();
-                        }
-                        // Actualizar el producto en el almacenamiento local para mantener el tipo
-                        localStorage.setItem('selectedProduct', JSON.stringify(this.producto));
                     }
                 },
-                asignarPrecioSegunCategoria() {
-                    const categoria = this.producto.level;
-                    let rangoPrecio;
-                    switch (categoria) {
-                        case 'Ultimate':
-                            rangoPrecio = [425, 1200];
-                            break;
-                        case 'Mega':
-                            rangoPrecio = [250, 420];
-                            break;
-                        case 'Champion':
-                            rangoPrecio = [200, 245];
-                            break;
-                        case 'Armor':
-                            rangoPrecio = [135, 195];
-                            break;
-                        case 'Rookie':
-                            rangoPrecio = [90, 130];
-                            break;
-                        case 'In Training':
-                            rangoPrecio = [50, 85];
-                            break;
-                        case 'Fresh':
-                            rangoPrecio = [25, 45];
-                            break;
-                        default:
-                            rangoPrecio = [10, 20];
-                            break;
+                cargarCarrito() {
+                    const carritoGuardado = localStorage.getItem("carrito");
+                    if (carritoGuardado) {
+                        this.carrito = JSON.parse(carritoGuardado);
                     }
-                    const [min, max] = rangoPrecio;
-                    this.producto.price = (Math.floor(Math.random() * ((max - min) / 5 + 1)) * 5) + min;
+                },
+                guardarCarrito() {
+                    localStorage.setItem("carrito", JSON.stringify(this.carrito));
+                },
+                agregarAlCarrito() {
+                    const productoEnCarrito = this.carrito.find(item => item.id === this.producto.id);
+                    if (productoEnCarrito) {
+                        productoEnCarrito.cantidad += this.cantidad;
+                    } else {
+                        this.carrito.push({ ...this.producto, cantidad: this.cantidad });
+                    }
+                    this.guardarCarrito();
                 },
                 aumentarCantidad() {
-                    if (this.cantidad < 6) {
-                        this.cantidad++;
-                    }
+                    if (this.cantidad < 6) this.cantidad++;
                 },
                 disminuirCantidad() {
-                    if (this.cantidad > 1) {
-                        this.cantidad--;
-                    }
+                    if (this.cantidad > 1) this.cantidad--;
                 },
-                regresarAlCatalogo() {
-                    history.back();
+                irAlCarrito() {
+                    alert("Ir al carrito no está implementado en esta página.");
                 }
             },
             mounted() {
                 this.obtenerProductoDelStorage();
+                this.cargarCarrito();
             }
         });
 

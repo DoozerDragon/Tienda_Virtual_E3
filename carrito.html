@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito - Tienda Digimon TCG</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Encabezado -->
+        <header class="bg-warning text-center py-4">
+            <h1 class="display-4">Carrito de Compras</h1>
+            <p>Administra tus productos seleccionados</p>
+            <a href="index.html" class="btn btn-primary mt-3">Volver al Catálogo</a>
+        </header>
+
+        <!-- Contenido del carrito -->
+        <main class="container my-4">
+            <div v-if="carrito.length > 0">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Imagen</th>
+                                <th>Nombre</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unitario</th>
+                                <th>Subtotal</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item, index) in carrito" :key="item.id">
+                                <td><img :src="item.img" alt="Imagen del producto" class="img-thumbnail" style="width: 80px;"></td>
+                                <td>{{ item.name }}</td>
+                                <td>
+                                    <button class="btn btn-outline-secondary btn-sm" @click="actualizarCantidad(index, -1)" :disabled="item.cantidad === 1">-</button>
+                                    {{ item.cantidad }}
+                                    <button class="btn btn-outline-secondary btn-sm" @click="actualizarCantidad(index, 1)">+</button>
+                                </td>
+                                <td>${{ item.price }}</td>
+                                <td>${{ item.price * item.cantidad }}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" @click="eliminarProducto(index)">Eliminar</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-end">
+                    <h4>Total: ${{ totalCarrito }}</h4>
+                    <button class="btn btn-danger me-2" @click="vaciarCarrito">Vaciar Carrito</button>
+                    <button class="btn btn-success">Proceder al Pago</button>
+                </div>
+            </div>
+            <div v-else class="text-center my-5">
+                <h3>Tu carrito está vacío</h3>
+                <a href="index.html" class="btn btn-primary mt-3">Volver al Catálogo</a>
+            </div>
+        </main>
+
+        <!-- Pie de página -->
+        <footer class="bg-dark text-center text-white py-3">
+            <p>© 2024 Tienda Digimon TCG</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    carrito: [], // Productos en el carrito
+                };
+            },
+            computed: {
+                // Cálculo del total del carrito
+                totalCarrito() {
+                    return this.carrito.reduce((total, item) => total + item.price * item.cantidad, 0);
+                },
+            },
+            methods: {
+                // Cargar carrito desde localStorage
+                cargarCarrito() {
+                    const carritoGuardado = localStorage.getItem("carrito");
+                    this.carrito = carritoGuardado ? JSON.parse(carritoGuardado) : [];
+                },
+                // Actualizar cantidad de un producto
+                actualizarCantidad(index, cambio) {
+                    this.carrito[index].cantidad += cambio;
+                    this.guardarCarrito();
+                },
+                // Eliminar producto del carrito
+                eliminarProducto(index) {
+                    this.carrito.splice(index, 1);
+                    this.guardarCarrito();
+                },
+                // Vaciar carrito
+                vaciarCarrito() {
+                    this.carrito = [];
+                    this.guardarCarrito();
+                },
+                // Guardar carrito en localStorage
+                guardarCarrito() {
+                    localStorage.setItem("carrito", JSON.stringify(this.carrito));
+                },
+            },
+            mounted() {
+                this.cargarCarrito();
+            },
+        });
+        
+        app.mount("#app");
+
+    </script>
+</body>
+</html>
