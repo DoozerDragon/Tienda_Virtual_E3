@@ -59,7 +59,7 @@
                             <input type="text" class="form-control text-center mx-2" :value="cantidad" readonly style="width: 50px;">
                             <button class="btn btn-outline-secondary" @click="aumentarCantidad" :disabled="cantidad === 6">+</button>
                         </div>
-                        <button class="btn btn-primary btn-lg shadow" @click="agregarAlCarrito">Agregar al Carrito <i class="fas fa-shopping-cart"></i></button>
+                        <button class="btn btn-primary btn-lg shadow" @click="agregarAlCarrito(producto)">Agregar al Carrito <i class="fas fa-shopping-cart"></i></button>
                     </div>
                 </div>
             </div>
@@ -141,5 +141,6 @@
 
         app.mount("#app");
     </script>
+    <script src="js/app.js"></script>
 </body>
 </html>

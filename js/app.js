@@ -1,21 +1,21 @@
 const app = Vue.createApp({
     data() {
         return {
-            // Datos compartidos entre catálogo y detalles
+            // Datos compartidos
             cards: [], // Lista de productos
             filteredCards: [], // Productos filtrados
             categories: [], // Categorías disponibles
             searchQuery: "", // Búsqueda por nombre
             selectedCategory: "", // Categoría seleccionada
             selectedProduct: {}, // Producto seleccionado para detalles
-            carrito: [], // Lista del carrito
-            cantidad: 1, // Cantidad en página de detalles
+            carrito: [], // Productos en el carrito
+            cantidad: 1, // Cantidad en la página de detalles
             maxItems: 209, // Máximo de productos a mostrar
-            producto: {}
+            producto: {} // Producto individual
         };
     },
     computed: {
-        // Ancho de barra de progreso
+        // Barra de progreso en el catálogo
         progressBarWidth() {
             return `${(this.filteredCards.length / this.cards.length) * 100}%`;
         }
@@ -24,17 +24,32 @@ const app = Vue.createApp({
         // Fetch de productos desde la API
         async fetchCards() {
             try {
-                const response = await axios.get("https://digimon-api.vercel.app/api/digimon");
-                this.cards = response.data.map(card => {
-                    const randomId = `${String.fromCharCode(65 + Math.floor(Math.random() * 26))}-${Math.floor(Math.random() * 99) + 1}`;
-                    return {
-                        ...card,
-                        img: card.img, // Imagen del producto
-                        level: card.level || "Desconocido", // Nivel del producto
-                        type: card.type || "Desconocido", // Tipo del producto
-                        id: randomId // ID generado
-                    };
-                });
+                // Verifica si los datos ya están en localStorage
+                const storedCards = localStorage.getItem("digimonCards");
+                if (storedCards) {
+                    this.cards = JSON.parse(storedCards);
+                } else {
+                    const response = await axios.get("https://digimon-api.vercel.app/api/digimon");
+                    const ids = new Set();
+                    this.cards = response.data.map(card => {
+                        let randomId;
+                        do {
+                            randomId = `${String.fromCharCode(65 + Math.floor(Math.random() * 26))}-${Math.floor(Math.random() * 99) + 1}`;
+                        } while (ids.has(randomId));
+                        ids.add(randomId);
+    
+                        return {
+                            ...card,
+                            img: card.img,
+                            level: card.level || "Desconocido",
+                            type: card.type || "Desconocido",
+                            id: randomId,
+                            price: card.price || this.assignPriceBasedOnCategory(card)
+                        };
+                    });
+                    // Guarda los datos en localStorage
+                    localStorage.setItem("digimonCards", JSON.stringify(this.cards));
+                }
                 this.applyFilters();
                 this.generateCategories();
             } catch (error) {
@@ -54,50 +69,35 @@ const app = Vue.createApp({
             const categoriesSet = new Set(this.cards.map(card => card.level));
             this.categories = [...categoriesSet].sort();
         },
-        // Filtros dinámicos
-        filterCards() {
-            this.applyFilters();
-        },
-        // Ver detalles del producto en modal
-        viewDetails(card) {
-            if (!card.type || card.type === "Desconocido") {
-                const types = ["Agua", "Fuego", "Tierra", "Aire", "Luz", "Oscuridad"];
-                card.type = types[Math.floor(Math.random() * types.length)];
-            }
-            if (!card.price) {
-                this.assignPriceBasedOnCategory(card);
-            }
-            this.selectedProduct = card;
-            const productModal = new bootstrap.Modal(document.getElementById("productModal"));
-            productModal.show();
-        },
-        // Redirigir a página de detalles
+        // Redirigir a detalles
         redirectToDetails(card) {
+            this.guardarCarrito();
             localStorage.setItem("selectedProduct", JSON.stringify(card));
             window.location.href = "detalles.html";
         },
         // Asignar precio basado en categoría
         assignPriceBasedOnCategory(card) {
-            const rangos = {
+            const rango = {
                 Ultimate: [425, 1200],
                 Mega: [250, 420],
                 Champion: [200, 245],
                 Armor: [135, 195],
                 Rookie: [90, 130],
                 "In Training": [50, 85],
-                Fresh: [25, 45],
-                default: [10, 20]
-            };
-            const [min, max] = rangos[card.level] || rangos.default;
-            card.price = (Math.floor(Math.random() * ((max - min) / 5 + 1)) * 5) + min;
+                Fresh: [25, 45]
+            }[card.level] || [10, 20];
+            const [min, max] = rango;
+            card.price = Math.floor(Math.random() * ((max - min) / 5 + 1)) * 5 + min;
         },
+        // Ir al carrito
         irAlCarrito() {
+            this.guardarCarrito();
             window.location.href = "carrito.html";
         },
         // Cargar carrito desde localStorage
         cargarCarrito() {
-            const carritoGuardado = localStorage.getItem("carrito");
-            this.carrito = carritoGuardado ? JSON.parse(carritoGuardado) : [];
+            const carritoGuardado = JSON.parse(localStorage.getItem("carrito") || "[]");
+            this.carrito = Array.isArray(carritoGuardado) ? carritoGuardado : [];
         },
         // Guardar carrito en localStorage
         guardarCarrito() {
@@ -113,14 +113,13 @@ const app = Vue.createApp({
             }
             this.guardarCarrito();
         },
-        // Obtener producto desde localStorage para detalles
+        // Obtener producto desde localStorage en detalles
         obtenerProductoDelStorage() {
             const productoAlmacenado = localStorage.getItem("selectedProduct");
             if (productoAlmacenado) {
                 this.selectedProduct = JSON.parse(productoAlmacenado);
-                if (!this.selectedProduct.type || this.selectedProduct.type === "Desconocido") {
-                    const tipos = ["Agua", "Fuego", "Tierra", "Aire", "Luz", "Oscuridad"];
-                    this.selectedProduct.type = tipos[Math.floor(Math.random() * tipos.length)];
+                if (!this.selectedProduct.type) {
+                    this.selectedProduct.type = ["Agua", "Fuego", "Tierra", "Aire", "Luz", "Oscuridad"][Math.floor(Math.random() * 6)];
                 }
                 if (!this.selectedProduct.price) {
                     this.assignPriceBasedOnCategory(this.selectedProduct);
@@ -137,7 +136,7 @@ const app = Vue.createApp({
         }
     },
     mounted() {
-        // Inicialización según página
+        // Inicialización según la página
         if (window.location.pathname.includes("detalles.html")) {
             this.obtenerProductoDelStorage();
         } else {
