@@ -33,15 +33,17 @@
                         </thead>
                         <tbody>
                             <tr v-for="(item, index) in carrito" :key="item.id">
-                                <td><img :src="item.img" alt="Imagen del producto" class="img-thumbnail" style="width: 80px;"></td>
-                                <td>{{ item.name }}</td>
+                                <td>
+                                    <img :src="item.img || 'placeholder.png'" alt="Imagen del producto" class="img-thumbnail" style="width: 80px;">
+                                </td>
+                                <td>{{ item.name || 'Sin nombre' }}</td>
                                 <td>
                                     <button class="btn btn-outline-secondary btn-sm" @click="actualizarCantidad(index, -1)" :disabled="item.cantidad === 1">-</button>
                                     {{ item.cantidad }}
                                     <button class="btn btn-outline-secondary btn-sm" @click="actualizarCantidad(index, 1)">+</button>
                                 </td>
-                                <td>${{ item.price }}</td>
-                                <td>${{ item.price * item.cantidad }}</td>
+                                <td>${{ item.price || 0 }}</td>
+                                <td>${{ calcularSubtotal(item) }}</td>
                                 <td>
                                     <button class="btn btn-danger btn-sm" @click="eliminarProducto(index)">Eliminar</button>
                                 </td>
@@ -78,7 +80,7 @@
             computed: {
                 // Cálculo del total del carrito
                 totalCarrito() {
-                    return this.carrito.reduce((total, item) => total + item.price * item.cantidad, 0);
+                    return this.carrito.reduce((total, item) => total + this.calcularSubtotal(item), 0).toFixed(2);
                 },
             },
             methods: {
@@ -86,11 +88,40 @@
                 cargarCarrito() {
                     const carritoGuardado = localStorage.getItem("carrito");
                     this.carrito = carritoGuardado ? JSON.parse(carritoGuardado) : [];
+                    // Validamos y asignamos precio si no existe
+                    this.carrito.forEach(item => {
+                        if (!item.price) {
+                            this.asignarPrecioSegunCategoria(item);
+                        }
+                    });
+                },
+                // Asignar precio según categoría
+                asignarPrecioSegunCategoria(producto) {
+                    const rangos = {
+                        Ultimate: [425, 1200],
+                        Mega: [250, 420],
+                        Champion: [200, 245],
+                        Armor: [135, 195],
+                        Rookie: [90, 130],
+                        "In Training": [50, 85],
+                        Fresh: [25, 45],
+                        default: [10, 20],
+                    };
+                    const [min, max] = rangos[producto.level] || rangos.default;
+                    producto.price = (Math.floor(Math.random() * ((max - min) / 5 + 1)) * 5) + min;
+                },
+                // Calcular subtotal de un producto
+                calcularSubtotal(item) {
+                    return (item.price || 0) * item.cantidad;
                 },
                 // Actualizar cantidad de un producto
                 actualizarCantidad(index, cambio) {
-                    this.carrito[index].cantidad += cambio;
-                    this.guardarCarrito();
+                    const producto = this.carrito[index];
+                    if (producto) {
+                        producto.cantidad += cambio;
+                        if (producto.cantidad < 1) producto.cantidad = 1; // Mínimo 1
+                        this.guardarCarrito();
+                    }
                 },
                 // Eliminar producto del carrito
                 eliminarProducto(index) {
@@ -111,9 +142,8 @@
                 this.cargarCarrito();
             },
         });
-        
-        app.mount("#app");
 
+        app.mount("#app");
     </script>
 </body>
 </html>

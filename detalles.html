@@ -80,12 +80,31 @@
                 };
             },
             methods: {
+
                 obtenerProductoDelStorage() {
                     const productoAlmacenado = localStorage.getItem("selectedProduct");
                     if (productoAlmacenado) {
                         this.producto = JSON.parse(productoAlmacenado);
+                    if (!this.producto.price) {
+                        this.asignarPrecioSegunCategoria();
                     }
+            }                },
+                asignarPrecioSegunCategoria() {
+                    const categoria = this.producto.level;
+                    const rangos = {
+                        Ultimate: [425, 1200],
+                        Mega: [250, 420],
+                        Champion: [200, 245],
+                        Armor: [135, 195],
+                        Rookie: [90, 130],
+                        "In Training": [50, 85],
+                        Fresh: [25, 45],
+                        default: [10, 20],
+                    };
+                    const [min, max] = rangos[categoria] || rangos.default;
+                    this.producto.price = (Math.floor(Math.random() * ((max - min) / 5 + 1)) * 5) + min;
                 },
+
                 cargarCarrito() {
                     const carritoGuardado = localStorage.getItem("carrito");
                     if (carritoGuardado) {
@@ -111,7 +130,7 @@
                     if (this.cantidad > 1) this.cantidad--;
                 },
                 irAlCarrito() {
-                    alert("Ir al carrito no está implementado en esta página.");
+                    window.location.href = "carrito.html";
                 }
             },
             mounted() {

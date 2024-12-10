@@ -91,12 +91,13 @@ const app = Vue.createApp({
             const [min, max] = rangos[card.level] || rangos.default;
             card.price = (Math.floor(Math.random() * ((max - min) / 5 + 1)) * 5) + min;
         },
+        irAlCarrito() {
+            window.location.href = "carrito.html";
+        },
         // Cargar carrito desde localStorage
         cargarCarrito() {
             const carritoGuardado = localStorage.getItem("carrito");
-            if (carritoGuardado) {
-                this.carrito = JSON.parse(carritoGuardado);
-            }
+            this.carrito = carritoGuardado ? JSON.parse(carritoGuardado) : [];
         },
         // Guardar carrito en localStorage
         guardarCarrito() {
@@ -106,10 +107,11 @@ const app = Vue.createApp({
         agregarAlCarrito(producto) {
             const productoExistente = this.carrito.find(item => item.id === producto.id);
             if (productoExistente) {
-                productoExistente.cantidad += this.cantidad;
+                productoExistente.cantidad++;
             } else {
-                this.carrito.push({ ...producto, cantidad: this.cantidad });
+                this.carrito.push({ ...producto, cantidad: 1 });
             }
+            this.guardarCarrito();
         },
         // Obtener producto desde localStorage para detalles
         obtenerProductoDelStorage() {
