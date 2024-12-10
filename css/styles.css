@@ -39,6 +39,45 @@ header p {
     text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
 }
 
+/* Ajustes para el botón del carrito en el header */
+.btn-outline-dark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%; /* Hace el botón redondo */
+    position: relative;
+    background-color: #fff; /* Fondo blanco para destacar */
+    border: 2px solid #333; /* Borde oscuro */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-outline-dark:hover {
+    background-color: #f39c12; /* Fondo naranja al pasar el mouse */
+    border-color: #e67e22; /* Borde naranja más intenso */
+}
+
+.btn-outline-dark i {
+    font-size: 1.5rem; /* Tamaño del ícono */
+    color: #333; /* Color del ícono */
+}
+
+.badge {
+    position: absolute;
+    top: 5px; /* Ajusta la posición superior */
+    right: 5px; /* Ajusta la posición derecha */
+    background-color: #e74c3c; /* Fondo rojo */
+    color: #fff; /* Texto blanco */
+    font-size: 0.9rem; /* Tamaño del texto */
+    padding: 0.25rem 0.5rem; /* Espaciado interno */
+    border-radius: 50%; /* Forma circular */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombra */
+    transform: translate(50%, -50%);
+}
+
+
 /* Filtros */
 input[type="text"], select {
     border-radius: 25px;
